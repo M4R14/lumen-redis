@@ -1,0 +1,47 @@
+version: '3'
+services:
+  nginx:
+    image: bitnami/nginx
+    ports:
+      - '8000:8080'
+      - '443:8443'
+    volumes:
+      - ./dockerfiles/nginx/my_vhost.conf:/bitnami/nginx/conf/vhosts/my_vhost.conf
+      - ./app:/var/www/html
+    depends_on:
+      - phpfpm
+  phpfpm:
+    build:
+      context: ./dockerfiles
+      dockerfile: php/Dockerfile
+    volumes:
+      - ./app:/var/www/html
+  database:
+    image: mysql:5.7
+    restart: always
+    # volumes:
+    #     - ./environment_tool/mysql/:/var/lib/mysql
+        # - ./database:/docker-entrypoint-initdb.d
+    environment:
+        TZ: Asia/Bangkok
+        MYSQL_DATABASE: admin_dev
+        MYSQL_USER: admin_dev
+        MYSQL_PASSWORD: pp6321
+        MYSQL_ROOT_PASSWORD: 123456
+  myadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+        TZ: Asia/Bangkok
+        PMA_HOST: database
+    ports:
+        - 8001:80
+    links: 
+        - database
+  redis:
+    image: 'bitnami/redis:latest'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - '6379:6379'
+    volumes:
+      - ./redis-persistence:/bitnami
